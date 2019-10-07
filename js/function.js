@@ -63,3 +63,55 @@ function paddingleft(word,str,length){
     string+=str;
     return string;
 }
+//--select  <<<<<<<  選項用(start)
+//select的option建立機制
+function my_option(node){
+    let count=node.length;
+    let div=create_node("div");
+    div=add_class(div,"option_box")
+    let k=1;
+    let label="",input="",value="",button="",span="";
+    label=create_node("label");
+    label=add_inner(label,"選項");
+    div.appendChild(label);
+    if(count>0){
+        for(let i=0;i<count;i++){
+            input=create_node("input");
+            input=add_class(input,"form-control my-1");
+            input=add_attribute(input,"name",`option${i+1}`);
+            input=add_value(input,$(node).find($(`option[value='option${i+1}']`)).html());
+            div.appendChild(input);
+        }
+    }else{
+        input=create_node("input");
+        input=add_class(input,"form-control my-1");
+        input=add_attribute(input,"name","option1");
+        div.appendChild(input);
+    }
+    return div;
+}
+//option替換值時的機制
+function option_change(node,value,inner){
+    let count=node.length;
+    if(count>0){
+        $.each($(node).children(),(k,v)=>{
+            console.log("a:"+value);
+            console.log("b:"+v.value);
+            console.log($(node).find($(`option[value='${value}']`)).val());
+            if(v.value===value)
+                $(node).find($(`option[value='${value}']`)).html(inner);
+            if($(node).find($(`option[value='${value}']`)).val()===undefined)
+                node=create_option(node,value,inner);
+        })
+    }else
+        node=create_option(node,value,inner);
+}
+//沒有option時建立
+function create_option(node,value,inner){
+    let option=create_node("option");
+    option=add_value(option,value);
+    option=add_inner(option,inner);
+    node.appendChild(option);
+    return node;
+}
+//--select  <<<<<<<  選項用(end)
