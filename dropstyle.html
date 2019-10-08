@@ -13,6 +13,12 @@
     border:1px solid lightgray;
     border-radius:5px;
 }
+.border_skyblue{
+    border:1px solid skyblue;
+}
+.border_aqua{
+    border:1px solid aqua;
+}
 .min_h30{
     min-height:30px;
 }
@@ -51,14 +57,61 @@
     font-family:'微軟正黑體';
     margin-top:10px;
 }
+.black_cloth{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,.5);
+    z-index:1000;
+    display:none;
+}
+.cloth_content{
+    width:50vw;
+    height:86vh;
+    margin:7vh auto;
+    background:rgb(255,255,255);
+    border-radius:10px;
+    padding:20px;
+}
+#code_area{
+    width:100%;
+    height:90%;
+    border:1px solid lightgray;
+    overflow:auto;
+}
+.show_code{
+    position:absolute;
+    bottom:10px;
+    left:10px;
+}
+.left_btn{
+    position:absolute;
+    right:-15px;
+    top:-15px;
+    cursor:pointer;
+    width:30px;height:30px;border-radius:15px;
+    background:white;
+    text-align:center;
+}
+pre{
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    word-break:normal;
+}
 </style>
 <div style="width:300px;height:100vh;background:#ddd;position:fixed;top:0;left:0" id="source-container" data-role="drag-drop-container">
     <div style="background-image:url(img/button.png)" class="list_style background-limit" id="drag-source1" draggable="true" value='button'></div>
     <div style="background-image:url(img/image.png)" class="list_style background-limit" id="drag-source2" draggable="true" value='img'></div>
     <div style="background-image:url(img/input.png)" class="list_style background-limit" id="drag-source3" draggable="true" value='text'></div>
-    <div style="background-image:url(img/select.png)" class="list_style background-limit" id="drag-source4" draggable="true" value='select'></div>
-    <div style="background-image:url(img/radio.png)" class="list_style background-limit" id="drag-source5" draggable="true" value='radio'></div>
-    <div style="background-image:url(img/checkbox.png)" class="list_style background-limit" id="drag-source6" draggable="true" value='checkbox'></div>
+    <div style="background-image:url(img/textarea.png)" class="list_style background-limit" id="drag-source4" draggable="true" value='textarea'></div>
+    <div style="background-image:url(img/select.png)" class="list_style background-limit" id="drag-source5" draggable="true" value='select'></div>
+    <div style="background-image:url(img/radio.png)" class="list_style background-limit" id="drag-source6" draggable="true" value='radio'></div>
+    <div style="background-image:url(img/checkbox.png)" class="list_style background-limit" id="drag-source7" draggable="true" value='checkbox'></div>
+    <div style="background-image:url(img/p.png)" class="list_style background-limit" id="drag-source8" draggable="true" value='p'></div>
+    <div style="background-image:url(img/h15.png)" class="list_style background-limit" id="drag-source9" draggable="true" value='h1'></div>
+    
     <hr>
     <div style="background-image:url(img/full.png)" class="list_style background-limit" id="drag-source10" draggable="true" value='container-fluid'></div>
     <div style="background-image:url(img/container.png)" class="list_style background-limit" id="drag-source11" draggable="true" value='container'></div>
@@ -67,11 +120,20 @@
     <div style="background-image:url(img/col_4.png)" class="list_style background-limit" id="drag-source14" draggable="true" value='col-4'></div>
     <div style="background-image:url(img/col_3.png)" class="list_style background-limit" id="drag-source15" draggable="true" value='col-3'></div>
     <div style="background-image:url(img/col_2.png)" class="list_style background-limit" id="drag-source16" draggable="true" value='col-2'></div>
+
+    <button class="btn btn-primary show_code">顯示程式碼</button>
 </div>
 <h3 class="title">請拖曳左方選項至下方框框內</h3>
 <div style="width:60vw;min-height:90vh;margin:20px 0 0 350px;border:1px solid lightgray;border-radius:10px;padding:10px" id="target-container" data-role="drag-drop-container">
 </div>
 <div style="width:300px;height:95vh;position:fixed;right:20px;background:black;top:10px;color:white;border-radius:10px;padding:10px;color:white;overflow:auto" id="content_style">請點擊區塊來顯示控制項</div>
+<div class="black_cloth">
+    <div class="cloth_content">
+        <div class="left_btn"><span class="fas fa-times" style="line-height:30px;font-size:20px;"></span></div>
+        <h1>編輯區域內的程式碼</h1>
+        <div id="code_area"></div>
+    </div>
+</div>
 <script>
 let sourceContainerId = "";
 let init=["Blue","Gray","Green","Red","Yellow","Lightblue","Lightgray","Black"];
@@ -186,7 +248,6 @@ function new_node(elem,class_name=null,val=null,inner=null,attr=null,attr_val=nu
 }
 //控制面板
 function control_page(node){
-    console.log(node);
     $("#content_style").html("");
     let node_style=window.getComputedStyle(node, null);
     let table_node=create_node("table");
@@ -197,17 +258,19 @@ function control_page(node){
     let h5="";
     let node_name=node.attributes.role;
     if(node_name!=undefined){
+        if(allData[node_name.nodeValue]["multi"])
+            td_node.appendChild(create_form("元素","select","h1",node_style));
         if(allData[node_name.nodeValue]["border"]){
             h5=create_node("h5");
             h5=add_inner(h5,"框線樣式");
             h5=add_class(h5,"text_yellow");
             td_node.appendChild(h5);
             if(allData[node_name.nodeValue]["border-width"])
-                td_node.appendChild(create_form("框線大小","input","border-width",node_style,false));
+                td_node.appendChild(create_form("框線大小","input","border-width",node_style));
             if(allData[node_name.nodeValue]["border-style"])
-                td_node.appendChild(create_form("框線樣式","select","border-style",node_style,true));
+                td_node.appendChild(create_form("框線樣式","select","border-style",node_style));
             if(allData[node_name.nodeValue]["border-color"])
-                td_node.appendChild(create_form("框線顏色","select","border-color",node_style,true));
+                td_node.appendChild(create_form("框線顏色","select","border-color",node_style));
         }
         if(allData[node_name.nodeValue]["background"]){
             h5=create_node("h5");
@@ -215,9 +278,9 @@ function control_page(node){
             h5=add_class(h5,"text_yellow");
             td_node.appendChild(h5);
             if(allData[node_name.nodeValue]["background-color"])
-                td_node.appendChild(create_form("背景顏色","select","background-color",node_style,true));
+                td_node.appendChild(create_form("背景顏色","select","background-color",node_style));
             if(allData[node_name.nodeValue]["background-image"])
-                td_node.appendChild(create_form("背景圖片","input","background-image",node_style,false));
+                td_node.appendChild(create_form("背景圖片","input","background-image",node_style));
         }
         if(allData[node_name.nodeValue]["font"]){
             h5=create_node("h5");
@@ -225,15 +288,15 @@ function control_page(node){
             h5=add_class(h5,"text_yellow");
             td_node.appendChild(h5);
             if(allData[node_name.nodeValue]["font-size"])
-                td_node.appendChild(create_form("字體大小","input","font-size",node_style,false));
+                td_node.appendChild(create_form("字體大小","input","font-size",node_style));
             if(allData[node_name.nodeValue]["color"])
-                td_node.appendChild(create_form("字體顏色","select","color",node_style,true));
+                td_node.appendChild(create_form("字體顏色","select","color",node_style));
             if(allData[node_name.nodeValue]["font-family"])
-                td_node.appendChild(create_form("字型","select","font-family",node_style,true));
+                td_node.appendChild(create_form("字型","select","font-family",node_style));
             if(allData[node_name.nodeValue]["font-weight"])
-                td_node.appendChild(create_form("字體粗細","select","font-weight",node_style,true));
+                td_node.appendChild(create_form("字體粗細","select","font-weight",node_style));
             if(allData[node_name.nodeValue]["text-align"])
-                td_node.appendChild(create_form("對齊方式","select","text-align",node_style,true));
+                td_node.appendChild(create_form("對齊方式","select","text-align",node_style));
         }
         if(allData[node_name.nodeValue]["src"])
             td_node.appendChild(create_form("圖片連結","input","src",node_style));
@@ -241,6 +304,8 @@ function control_page(node){
             td_node.appendChild(create_form("值","input","innerHTML",node_style));
         if(allData[node_name.nodeValue]["placeholder"])
             td_node.appendChild(create_form("提醒文字","input","placeholder",node_style));
+        if(allData[node_name.nodeValue]["name"])
+            td_node.appendChild(create_form("群組","input","name",node_style));
         if(allData[node_name.nodeValue]["option"]){
             td_node.appendChild(my_option(now_pointer))
             button=create_node("button");
@@ -251,13 +316,9 @@ function control_page(node){
             button.appendChild(span);
             td_node.appendChild(button)
         }
-        // console.log(td_node); 
         tr_node.appendChild(td_node);
-        // console.log(tr_node); 
         table_node.appendChild(tr_node);
-        // console.log(table_node); 
         $("#content_style").append(table_node);
-        // console.log($("#content_style"));
         let del_btn=create_node("button");
         del_btn=add_class(del_btn,"btn btn-danger btn-block");
         del_btn=add_attribute(del_btn,"id","del_btn");
@@ -265,23 +326,22 @@ function control_page(node){
         let div=create_node("div");
         div=add_class(div,"my-2");
         div.appendChild(del_btn)
-        // console.log(div);
         $("#content_style").append(div);
     }
 }
 //建立控制面板欄位
-function create_form(label_name,elem,style_name,node_style,select){
+function create_form(label_name,elem,style_name,node_style){
     let div=create_node("div");
     let label=create_node("label");
     label=add_inner(label,label_name);
     let element=create_node(elem);
     element=add_class(element,"form-control");
     element=add_attribute(element,"name",style_name);
-    if(select){
+    if(elem==="select"){
         element=add_option(element,optionData[style_name]);
     }else{
         if(style_name==="border-width"||style_name==="font-family")
-            element=add_value(element,Math.round(node_style.getPropertyValue(style_name).replace(/[^0-9.]/ig,"")));
+            element=add_value(element,Math.round(change_word(node_style.getPropertyValue(style_name),[/[^0-9.]/ig],"")));
         if(style_name==="background-image"||style_name==="src"){
             element=add_attribute(element,"type","file");
             element=add_attribute(element,"accept","image/*");
@@ -290,6 +350,10 @@ function create_form(label_name,elem,style_name,node_style,select){
             element=add_value(element,now_pointer.innerHTML);
         if(style_name==="placeholder")
             element=add_value(element,now_pointer.placeholder);
+        if(style_name==="name")
+            element=add_value(element,change_word(now_pointer.previousSibling.name,"[]",""));
+        if(style_name==="h1")
+            element=add_value(element,now_pointer.tagName);
     }
     div.appendChild(label);
     div.appendChild(element);
@@ -299,7 +363,15 @@ function create_form(label_name,elem,style_name,node_style,select){
 $(document).on("change","#content_style select",(e)=>{
     let value=$(e.target).find(":selected").val();
     let sign=$(e.target).attr("name");
-    now_pointer.style.setProperty(sign,value);
+    if(sign==="h1"){
+        let new_node=create_node(value);
+        new_node=add_class(new_node,now_pointer.className);
+        new_node=add_attribute(new_node,"role",now_pointer.attributes.role.nodeValue);
+        new_node=add_inner(new_node,value);
+        now_pointer.parentNode.replaceChild(new_node,now_pointer);
+        $("#content_style").html("");
+    }else
+        now_pointer.style.setProperty(sign,value);
 })
 $(document).on("change","#content_style input",(e)=>{
     let value=$(e.target).val();
@@ -315,19 +387,21 @@ $(document).on("change","#content_style input",(e)=>{
         reader.readAsDataURL(e.target.files[0]);
     }
     let sign=$(e.target).attr("name");
-    console.log(sign);
     if(sign==="innerHTML")
         now_pointer.innerHTML=value;
     else if(sign==="placeholder")
         $(now_pointer).attr(sign,value);
-    else if(sign==="border-width"||sign==="font-size")
+    else if(sign==="name"){
+        if($(now_pointer).attr("role")==="checkbox")
+            $(now_pointer.previousSibling).attr(sign,`${value}[]`);
+        else
+            $(now_pointer.previousSibling).attr(sign,value);
+    }else if(sign==="border-width"||sign==="font-size")
         now_pointer.style.setProperty(sign,`${value}px`);
     else  
         option_change(now_pointer,sign,value);
-    
 })
 $(document).on("click","#target-container>*",function(e){
-    console.log(this);
     if($(e.target).attr("role")!=undefined){
         now_pointer=e.target;
         control_page(e.target);
@@ -335,12 +409,33 @@ $(document).on("click","#target-container>*",function(e){
     
 })
 $(document).on("click","#del_btn",(e)=>{
-    now_pointer.parentNode.removeChild(now_pointer);
+    let role_name=now_pointer.attributes.role.nodeValue;
+    if(allData[role_name]["delete"]){
+        let parent=now_pointer.parentNode;
+        parent.parentNode.removeChild(parent);
+    }
+    else
+        now_pointer.parentNode.removeChild(now_pointer);
     $("#content_style").html("");
 })
 $(document).on("click","button[name='add_option']",()=>{
     let length=$("#content_style input").length;
     let str=`<input name='option${length+1}' class='form-control my-1'>`;
     $(".option_box").append(str);
+})
+$(document).on("click",".show_code",()=>{
+    let mycode=$("#target-container").html();
+    mycode=mycode.split("<");
+    let pre="";
+    for(let i=1;i<mycode.length;i++){
+        pre=create_node("pre");
+        pre=add_inner(pre,`<${mycode[i]}`);
+        $("#code_area").append($(pre));
+    }
+    // document.getElementById("code_area").appendChild()
+    $(".black_cloth").css("display","block");
+})
+$(document).on("click",".left_btn",()=>{
+    $(".black_cloth").css("display","none");
 })
 </script>

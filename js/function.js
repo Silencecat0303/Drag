@@ -26,8 +26,10 @@ function set_attr(node,attr,attr_val){  //建立屬性
 //加入option
 function add_option(node,array){
     let style=$(now_pointer).css(node.attributes.name.nodeValue);
-    if(style.match("rgb"))
+    if(style!==undefined && style.match("rgb"))
         style=colorcode_change(style);
+    else
+        style=now_pointer.tagName;
     $.each(array,(k,v)=>{
         let option=create_node("option");
         option=add_value(option,v["value"]);
@@ -63,6 +65,14 @@ function paddingleft(word,str,length){
     string+=str;
     return string;
 }
+//字串替換字元
+function change_word(string,array,word){
+    let count=array.length;
+    for(let i=0;i<count;i++){
+        string=string.replace(array[i],word);
+    }
+    return string;
+}
 //--select  <<<<<<<  選項用(start)
 //select的option建立機制
 function my_option(node){
@@ -95,9 +105,6 @@ function option_change(node,value,inner){
     let count=node.length;
     if(count>0){
         $.each($(node).children(),(k,v)=>{
-            console.log("a:"+value);
-            console.log("b:"+v.value);
-            console.log($(node).find($(`option[value='${value}']`)).val());
             if(v.value===value)
                 $(node).find($(`option[value='${value}']`)).html(inner);
             if($(node).find($(`option[value='${value}']`)).val()===undefined)
